@@ -1,0 +1,31 @@
+import { Navbar } from "@/components/Navbar";
+import { Hero } from "@/components/Hero";
+import { Benefits } from "@/components/Benefits";
+import { Library } from "@/components/Library";
+import { Store } from "@/components/Store";
+import { Dashboard } from "@/components/Dashboard";
+import { Testimonials } from "@/components/Testimonials";
+import { Pricing } from "@/components/Pricing";
+import { Creator } from "@/components/Creator";
+import { Newsletter } from "@/components/Newsletter";
+import { Footer } from "@/components/Footer";
+
+const Index = () => {
+  return (
+    <main className="min-h-screen bg-background overflow-x-hidden">
+      <Navbar />
+      <Hero />
+      <Benefits />
+      <Library />
+      <Store />
+      <Dashboard />
+      <Testimonials />
+      <Pricing />
+      <Creator />
+      <Newsletter />
+      <Footer />
+    </main>
+  );
+};
+
+export default Index;
