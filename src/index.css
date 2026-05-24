@@ -67,9 +67,13 @@
 
 @layer base {
   * { @apply border-border; }
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+    background: hsl(222 39% 5%);
+  }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
+    background-color: transparent;
     font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: 'ss01', 'cv11';
   }
@@ -110,5 +114,37 @@
     position: absolute; inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
     opacity: 0.03; pointer-events: none; mix-blend-mode: overlay;
+  }
+
+  /* Full-page background image layer.
+     Use `public/bg-cover.jpg` as the visible site background.
+     The image is sized with `cover` to avoid visible tiling and is not blurred.
+     `mix-blend-mode` and full opacity keep the background clearly visible. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url('/bg-cover.jpg'), var(--bg-image-url), url('/src/assets/hero-orb.jpg');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    opacity: 1;
+    mix-blend-mode: normal;
+    filter: brightness(1.25) saturate(1.2);
+    transform: scale(1.05);
+    transform-origin: center center;
+    pointer-events: none;
+    z-index: -2;
+    will-change: transform, opacity;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    pointer-events: none;
+    z-index: -1;
   }
 }
