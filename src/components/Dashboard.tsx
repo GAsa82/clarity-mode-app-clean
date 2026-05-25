@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { Play, Pause, RotateCcw, Flame, Quote, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getDailyClarityQuote } from "@/lib/quotes";
+import {
+  anxietyLevels,
+  videosByAnxietyLevel,
+  type AnxietyLevel,
+} from "@/lib/anxiety-videos";
 
 const prompts = [
   "What thought is renting space in my head today?",
@@ -10,8 +15,6 @@ const prompts = [
   "What small win can you celebrate from today?",
   "What noise do you want to let go of tomorrow?",
 ];
-
-const moods = ["Calm", "Sharp", "Heavy", "Restless", "Grateful"];
 
 interface Note {
   id: string;
@@ -23,7 +26,7 @@ interface Note {
 export const Dashboard = () => {
   const [seconds, setSeconds] = useState(25 * 60);
   const [running, setRunning] = useState(false);
-  const [mood, setMood] = useState<string | null>(null);
+  const [anxietyLevel, setAnxietyLevel] = useState<AnxietyLevel | null>(null);
   const [journal, setJournal] = useState("");
   const [promptIndex, setPromptIndex] = useState(() => new Date().getDate() % prompts.length);
   const [savedNotes, setSavedNotes] = useState<Note[]>([]);
@@ -66,7 +69,7 @@ export const Dashboard = () => {
     const note: Note = {
       id: String(Date.now()),
       text,
-      mood,
+      mood: anxietyLevel,
       createdAt: new Date().toISOString(),
     };
     setSavedNotes((notes) => [note, ...notes]);
@@ -79,7 +82,11 @@ export const Dashboard = () => {
 
   const loadNote = (note: Note) => {
     setJournal(note.text);
-    setMood(note.mood);
+    setAnxietyLevel(
+      note.mood && anxietyLevels.includes(note.mood as AnxietyLevel)
+        ? (note.mood as AnxietyLevel)
+        : null,
+    );
   };
 
   const nextPrompt = () => {
@@ -135,30 +142,55 @@ export const Dashboard = () => {
             </div>
           </div>
 
-          {/* Mood */}
+          {/* Anxiety level + video suggestions */}
           <div className="bg-card-elevated border border-border rounded-2xl p-8">
             <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-6">
-              How are you arriving?
+              What&apos;s your anxiety level?
             </p>
             <div className="flex flex-wrap gap-2">
-              {moods.map((m) => (
+              {anxietyLevels.map((level) => (
                 <button
-                  key={m}
-                  onClick={() => setMood(m)}
+                  key={level}
+                  type="button"
+                  onClick={() => setAnxietyLevel(level)}
                   className={`px-4 py-2 rounded-full text-sm border transition-all ${
-                    mood === m
+                    anxietyLevel === level
                       ? "bg-foreground text-background border-foreground"
                       : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                   }`}
                 >
-                  {m}
+                  {level}
                 </button>
               ))}
             </div>
-            {mood && (
-              <p className="mt-6 text-sm text-muted-foreground animate-fade-in">
-                Logged. Reflection unlocked below.
-              </p>
+            {anxietyLevel && (
+              <div className="mt-5 pt-4 border-t border-border/60 animate-fade-in">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-primary mb-2">
+                  Suggested for {anxietyLevel.toLowerCase()} stress
+                </p>
+                <ul className="space-y-1.5 max-h-[132px] overflow-y-auto scrollbar-none pr-1">
+                  {videosByAnxietyLevel[anxietyLevel].map((video) => (
+                    <li key={video.id}>
+                      <a
+                        href={video.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 -mx-2 hover:bg-primary/10 transition-colors group"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                          <Play className="w-2.5 h-2.5 fill-current" />
+                        </span>
+                        <span className="text-xs text-foreground truncate flex-1">
+                          {video.title}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground shrink-0">
+                          {video.duration}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
 
