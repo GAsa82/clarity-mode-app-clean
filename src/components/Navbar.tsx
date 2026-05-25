@@ -52,7 +52,16 @@ export const Navbar = () => {
 
           <div className="hidden md:flex items-center gap-3">
             <Button variant="ghost" size="sm">Sign in</Button>
-            <Button variant="hero" size="sm">Start Free</Button>
+            <Button asChild variant="hero" size="sm">
+              <a
+                href="https://gauravdata.gumroad.com/l/"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => window.open("https://gauravdata.gumroad.com/l/", "_blank", "noopener,noreferrer")}
+              >
+                Start Free
+              </a>
+            </Button>
           </div>
 
           <button
@@ -79,7 +88,16 @@ export const Navbar = () => {
               ))}
               <div className="flex flex-col gap-2 pt-2 border-t border-border">
                 <Button variant="ghost" size="sm">Sign in</Button>
-                <Button variant="hero" size="sm">Start Free</Button>
+                <Button asChild variant="hero" size="sm">
+                  <a
+                    href="https://gauravdata.gumroad.com/l/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => window.open("https://gauravdata.gumroad.com/l/", "_blank", "noopener,noreferrer")}
+                  >
+                    Start Free
+                  </a>
+                </Button>
               </div>
             </div>
           </div>

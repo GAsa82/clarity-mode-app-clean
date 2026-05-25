@@ -1,10 +1,48 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { addSubscriber, subscriberCount } from "@/lib/subscribers";
 
 export const Newsletter = () => {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [count, setCount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCount(subscriberCount());
+  }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    const result = addSubscriber(email);
+    if (!result.added) {
+      if (result.reason === "invalid") setError("Please enter a valid email address.");
+      else if (result.reason === "duplicate") setError("This email is already subscribed.");
+      return;
+    }
+    // optimistic local save
+    setSent(true);
+    setCount(subscriberCount());
+    const savedEmail = email;
+    setEmail("");
+
+    // try to notify server (optional). Configure VITE_API_URL to point to your server.
+    const apiBase = (import.meta as any).env?.VITE_API_URL || "http://localhost:3001";
+    fetch(`${apiBase}/api/subscribe`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: savedEmail }),
+    }).then(async (res) => {
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        console.warn('Subscribe API responded with error', body);
+      }
+    }).catch((err) => {
+      console.warn('Subscribe API request failed', err);
+    });
+  };
 
   return (
     <section className="py-24 md:py-32 relative">
@@ -19,17 +57,11 @@ export const Newsletter = () => {
               One email. <span className="text-silver italic">One reset.</span>
               <br /> Every Sunday.
             </h2>
-            <p className="text-muted-foreground max-w-md mx-auto mb-8">
-              Join 28,000+ readers building a calmer, sharper mind. No noise. No spam.
+            <p className="text-muted-foreground max-w-md mx-auto mb-2">
+              Join <strong>{count.toLocaleString()}</strong> readers building a calmer, sharper mind. No noise. No spam.
             </p>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (email) setSent(true);
-              }}
-              className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
-            >
+            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
               <input
                 type="email"
                 required
@@ -43,6 +75,8 @@ export const Newsletter = () => {
                 {!sent && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />}
               </Button>
             </form>
+            {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
+            {sent && <p className="mt-3 text-sm text-foreground">Thanks — you're subscribed.</p>}
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import creatorImg from "@/assets/hero-orb.jpg";
+import creatorImg from "@/assets/lora-silver-VJVsRSjYS4A-unsplash.jpg";
 
 export const Creator = () => {
   return (
@@ -7,12 +7,8 @@ export const Creator = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
           <div className="lg:col-span-2 order-2 lg:order-1">
             <div className="relative aspect-square max-w-sm mx-auto rounded-3xl overflow-hidden bg-card-elevated border border-border">
-              <img src={creatorImg} alt="Clarity Mode founder" className="w-full h-full object-cover opacity-80" />
+              <img src={creatorImg} alt="Person reflecting by water" className="w-full h-full object-cover opacity-90" />
               <div className="absolute inset-0 bg-gradient-to-tr from-background via-transparent to-transparent" />
-              <div className="absolute bottom-6 left-6">
-                <p className="font-display text-xl">Alex Mercer</p>
-                <p className="text-xs uppercase tracking-widest text-muted-foreground">Founder · Writer</p>
-              </div>
             </div>
           </div>
           <div className="lg:col-span-3 order-1 lg:order-2">

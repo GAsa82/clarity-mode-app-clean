@@ -1,6 +1,8 @@
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const GUMROAD_URL = "https://gauravdata.gumroad.com/l/";
+
 const products = [
   {
     title: "30 Days to Mental Clarity",
@@ -91,7 +93,16 @@ export const Store = () => {
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-display text-2xl">${p.price}</span>
-                  <Button variant="hero" size="sm">Buy now</Button>
+                  <Button asChild variant="hero" size="sm">
+                    <a
+                      href={GUMROAD_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => window.open(GUMROAD_URL, "_blank", "noopener,noreferrer")}
+                    >
+                      Buy now
+                    </a>
+                  </Button>
                 </div>
               </div>
             </article>

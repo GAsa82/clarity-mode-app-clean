@@ -1,20 +1,32 @@
 import { useEffect, useState } from "react";
 import { Play, Pause, RotateCcw, Flame, Quote, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getDailyClarityQuote } from "@/lib/quotes";
 
 const prompts = [
   "What thought is renting space in my head today?",
   "What did I do well yesterday that I won't credit myself for?",
   "What would the focused version of me do in the next hour?",
+  "What small win can you celebrate from today?",
+  "What noise do you want to let go of tomorrow?",
 ];
 
 const moods = ["Calm", "Sharp", "Heavy", "Restless", "Grateful"];
+
+interface Note {
+  id: string;
+  text: string;
+  mood: string | null;
+  createdAt: string;
+}
 
 export const Dashboard = () => {
   const [seconds, setSeconds] = useState(25 * 60);
   const [running, setRunning] = useState(false);
   const [mood, setMood] = useState<string | null>(null);
   const [journal, setJournal] = useState("");
+  const [promptIndex, setPromptIndex] = useState(() => new Date().getDate() % prompts.length);
+  const [savedNotes, setSavedNotes] = useState<Note[]>([]);
 
   useEffect(() => {
     if (!running) return;
@@ -24,8 +36,55 @@ export const Dashboard = () => {
     return () => clearInterval(id);
   }, [running]);
 
+  useEffect(() => {
+    const storedDraft = window.localStorage.getItem("clarity-journal-draft");
+    if (storedDraft) {
+      setJournal(storedDraft);
+    }
+    const storedNotes = window.localStorage.getItem("clarity-saved-notes");
+    if (storedNotes) {
+      setSavedNotes(JSON.parse(storedNotes));
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("clarity-journal-draft", journal);
+  }, [journal]);
+
+  useEffect(() => {
+    window.localStorage.setItem("clarity-saved-notes", JSON.stringify(savedNotes));
+  }, [savedNotes]);
+
   const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
   const ss = String(seconds % 60).padStart(2, "0");
+  const quote = getDailyClarityQuote();
+  const currentPrompt = prompts[promptIndex];
+
+  const saveNote = () => {
+    const text = journal.trim();
+    if (!text) return;
+    const note: Note = {
+      id: String(Date.now()),
+      text,
+      mood,
+      createdAt: new Date().toISOString(),
+    };
+    setSavedNotes((notes) => [note, ...notes]);
+    setJournal("");
+  };
+
+  const clearDraft = () => {
+    setJournal("");
+  };
+
+  const loadNote = (note: Note) => {
+    setJournal(note.text);
+    setMood(note.mood);
+  };
+
+  const nextPrompt = () => {
+    setPromptIndex((index) => (index + 1) % prompts.length);
+  };
 
   return (
     <section id="dashboard" className="py-24 md:py-32 relative">
@@ -44,7 +103,7 @@ export const Dashboard = () => {
           <div className="lg:col-span-2 bg-card-elevated border border-border rounded-2xl p-8 md:p-10 relative overflow-hidden">
             <Quote className="w-8 h-8 text-primary/30 mb-6" />
             <p className="font-display text-2xl md:text-3xl leading-snug text-gradient">
-              "The mind is a powerful place. What you feed it grows. What you starve, fades."
+              "{quote}"
             </p>
             <p className="mt-6 text-xs uppercase tracking-[0.25em] text-muted-foreground">
               Today's Clarity Note
@@ -146,14 +205,19 @@ export const Dashboard = () => {
 
           {/* Journal */}
           <div className="lg:col-span-3 bg-card-elevated border border-border rounded-2xl p-8">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                Reflection
-              </p>
-              <p className="text-xs text-muted-foreground">{journal.length} chars</p>
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                  Reflection
+                </p>
+                <p className="text-xs text-muted-foreground">{journal.length} chars</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={nextPrompt}>
+                New prompt
+              </Button>
             </div>
             <p className="font-display text-xl mb-4 text-silver italic">
-              {prompts[0]}
+              {currentPrompt}
             </p>
             <textarea
               value={journal}
@@ -161,6 +225,57 @@ export const Dashboard = () => {
               placeholder="Begin writing..."
               className="w-full bg-transparent resize-none outline-none text-base leading-relaxed min-h-[120px] text-foreground placeholder:text-muted-foreground/50"
             />
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <Button variant="hero" onClick={saveNote}>
+                Save note
+              </Button>
+              <Button variant="outline" onClick={clearDraft}>
+                Clear
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Draft auto-saves in your browser.
+              </p>
+            </div>
+
+            {savedNotes.length > 0 && (
+              <div className="mt-8 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+                    Saved notes
+                  </p>
+                  <p className="text-xs text-muted-foreground">{savedNotes.length} entries</p>
+                </div>
+                <div className="grid gap-3">
+                  {savedNotes.map((note) => (
+                    <div key={note.id} className="rounded-3xl border border-border bg-background/80 p-4">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div className="min-w-0">
+                          <p className="text-sm leading-relaxed text-foreground break-words">
+                            {note.text.length > 160 ? `${note.text.slice(0, 160)}...` : note.text}
+                          </p>
+                          <p className="mt-3 text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+                            {note.mood ? `${note.mood} · ` : ""}
+                            {new Date(note.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" variant="outline" onClick={() => loadNote(note)}>
+                            Load
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setSavedNotes((notes) => notes.filter((item) => item.id !== note.id))}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

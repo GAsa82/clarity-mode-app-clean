@@ -42,7 +42,7 @@
     --glow: 215 90% 62%;
 
     --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, hsl(215 90% 25% / 0.55), transparent 70%);
-    --gradient-card: linear-gradient(145deg, hsl(220 30% 11% / 0.9), hsl(222 35% 7% / 0.9));
+    --gradient-card: linear-gradient(145deg, hsl(220 30% 11% / 0.65), hsl(222 35% 7% / 0.72));
     --gradient-primary: linear-gradient(135deg, hsl(215 90% 62%), hsl(220 80% 45%));
     --gradient-text: linear-gradient(180deg, hsl(210 30% 98%), hsl(210 14% 70%));
     --gradient-silver: linear-gradient(135deg, hsl(210 20% 92%), hsl(215 14% 60%));
@@ -69,13 +69,19 @@
   * { @apply border-border; }
   html {
     scroll-behavior: smooth;
+    min-height: 100%;
     background: hsl(222 39% 5%);
   }
   body {
     @apply text-foreground antialiased;
+    min-height: 100vh;
     background-color: transparent;
     font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: 'ss01', 'cv11';
+  }
+  #root {
+    min-height: 100vh;
+    isolation: isolate;
   }
   h1, h2, h3, .font-display {
     font-family: 'Fraunces', Georgia, serif;
@@ -86,28 +92,61 @@
 
 @layer utilities {
   .text-gradient {
+    color: hsl(210 30% 98%);
     background: var(--gradient-text);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   .text-silver {
+    color: hsl(210 20% 85%);
     background: var(--gradient-silver);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .netflix-browse {
+    mask-image: linear-gradient(90deg, transparent, black 24px, black calc(100% - 24px), transparent);
+  }
+  @media (min-width: 768px) {
+    .netflix-browse {
+      mask-image: linear-gradient(90deg, transparent, black 48px, black calc(100% - 48px), transparent);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up,
+    .animate-fade-in,
+    .animate-scale-in {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
   .bg-hero { background: var(--gradient-hero); }
-  .bg-card-elevated { background: var(--gradient-card); }
+  .bg-card-elevated {
+    background: var(--gradient-card);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
   .bg-primary-gradient { background: var(--gradient-primary); }
   .shadow-glow { box-shadow: var(--shadow-glow); }
   .shadow-elegant { box-shadow: var(--shadow-elegant); }
   .shadow-card-soft { box-shadow: var(--shadow-card); }
   .glass {
-    background: hsl(222 35% 8% / 0.6);
+    background: hsl(222 35% 8% / 0.45);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid hsl(220 20% 18% / 0.8);
+    border: 1px solid hsl(220 20% 18% / 0.55);
   }
   .noise::before {
     content: '';
@@ -116,35 +155,51 @@
     opacity: 0.03; pointer-events: none; mix-blend-mode: overlay;
   }
 
-  /* Full-page background image layer.
-     Use `public/bg-cover.jpg` as the visible site background.
-     The image is sized with `cover` to avoid visible tiling and is not blurred.
-     `mix-blend-mode` and full opacity keep the background clearly visible. */
+  /* Full-page wallpaper (URL set in main.tsx) */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: url('/bg-cover.jpg'), var(--bg-image-url), url('/src/assets/hero-orb.jpg');
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background-image: var(--bg-image-url);
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    opacity: 1;
-    mix-blend-mode: normal;
-    filter: brightness(1.25) saturate(1.2);
-    transform: scale(1.05);
-    transform-origin: center center;
+    transform: scale(1.02);
     pointer-events: none;
     z-index: -2;
-    will-change: transform, opacity;
   }
 
+  /* Blend overlay: navy brand + soft vignette so wallpaper shows through sections */
   body::after {
     content: '';
     position: fixed;
     inset: 0;
-    background: transparent;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 45%, hsl(222 39% 5% / 0.35) 0%, hsl(222 39% 5% / 0.78) 100%),
+      linear-gradient(
+        180deg,
+        hsl(222 39% 5% / 0.82) 0%,
+        hsl(222 39% 5% / 0.48) 28%,
+        hsl(222 39% 5% / 0.52) 72%,
+        hsl(222 39% 5% / 0.86) 100%
+      ),
+      linear-gradient(
+        135deg,
+        hsl(215 90% 18% / 0.25) 0%,
+        transparent 45%,
+        hsl(45 90% 35% / 0.08) 100%
+      );
     pointer-events: none;
     z-index: -1;
   }
+
 }

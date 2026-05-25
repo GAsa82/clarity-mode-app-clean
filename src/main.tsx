@@ -6,9 +6,7 @@ import "./index.css";
 document.documentElement.classList.add("dark");
 
 // Import background image so Vite resolves its URL correctly and expose as CSS variable
-import bgCover from "./assets/bg-cover.jpg";
-if (bgCover) {
-	document.documentElement.style.setProperty("--bg-image-url", `url(${bgCover})`);
-}
+import siteBackground from "./assets/mob_psycho_wallpaper_pc_-_energy__motion.jpeg";
+document.documentElement.style.setProperty("--bg-image-url", `url(${siteBackground})`);
 
 createRoot(document.getElementById("root")!).render(<App />);

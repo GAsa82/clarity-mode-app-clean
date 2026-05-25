@@ -1,8 +1,9 @@
+import { Link } from "react-router-dom";
 import { Instagram, Twitter, Youtube } from "lucide-react";
 
 export const Footer = () => {
   return (
-    <footer className="border-t border-border py-16 mt-12">
+    <footer className="relative border-t border-border/60 py-16 mt-12 backdrop-blur-sm bg-background/20">
       <div className="container">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           <div className="col-span-2">
@@ -38,7 +39,7 @@ export const Footer = () => {
               <ul className="space-y-3">
                 {col.links.map((l) => (
                   <li key={l}>
-                    <a href="#" className="text-sm hover:text-primary transition-colors">{l}</a>
+                    <Link to={`/${l.toLowerCase()}`} className="text-sm hover:text-primary transition-colors">{l}</Link>
                   </li>
                 ))}
               </ul>

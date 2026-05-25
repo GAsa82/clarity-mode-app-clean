@@ -2,12 +2,13 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import heroOrb from "@/assets/hero-orb.jpg";
 
+const GUMROAD_URL = "https://gauravdata.gumroad.com/l/";
+
 export const Hero = () => {
   return (
     <section className="relative pt-32 pb-24 md:pt-44 md:pb-32 overflow-hidden">
-      {/* Glow background */}
-      <div className="absolute inset-0 bg-hero pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[900px] md:h-[900px] opacity-40 pointer-events-none">
+      <div className="absolute inset-0 bg-hero pointer-events-none opacity-90" aria-hidden />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[900px] md:h-[900px] opacity-25 pointer-events-none">
         <img
           src={heroOrb}
           alt=""
@@ -34,30 +35,30 @@ export const Hero = () => {
           </h1>
 
           <p
-            className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed animate-fade-up"
-            style={{ animationDelay: "0.15s", opacity: 0 }}
+            className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed animate-fade-up [animation-delay:0.15s]"
           >
             Escape overthinking, dopamine overload, and emotional noise.
             Build the calm, confident, focused version of yourself — one day at a time.
           </p>
 
-          <div
-            className="flex flex-col sm:flex-row gap-3 justify-center animate-fade-up"
-            style={{ animationDelay: "0.3s", opacity: 0 }}
-          >
-            <Button variant="hero" size="xl" className="group">
-              Start Free
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          <div className="flex flex-col sm:flex-row gap-3 justify-center animate-fade-up [animation-delay:0.3s]">
+            <Button asChild variant="hero" size="xl" className="group">
+              <a
+                href={GUMROAD_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => window.open(GUMROAD_URL, "_blank", "noopener,noreferrer")}
+              >
+                Start Free
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </a>
             </Button>
             <Button variant="glass" size="xl">
               Explore Clarity Library
             </Button>
           </div>
 
-          <div
-            className="mt-16 flex flex-wrap justify-center gap-x-10 gap-y-3 text-xs uppercase tracking-[0.2em] text-muted-foreground/70 animate-fade-in"
-            style={{ animationDelay: "0.6s", opacity: 0 }}
-          >
+          <div className="mt-16 flex flex-wrap justify-center gap-x-10 gap-y-3 text-xs uppercase tracking-[0.2em] text-muted-foreground/70 animate-fade-in [animation-delay:0.6s]">
             <span>50k+ minds</span>
             <span className="opacity-30">·</span>
             <span>4.9 rating</span>
