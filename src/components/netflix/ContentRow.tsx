@@ -9,9 +9,19 @@ type ContentRowProps = {
   sessions: ClaritySession[];
   onSelect: (session: ClaritySession) => void;
   index?: number;
+  /** Inside TrendingRowWithRail — no outer section margin/padding */
+  embedded?: boolean;
+  hideTitle?: boolean;
 };
 
-export const ContentRow = ({ title, sessions, onSelect, index = 0 }: ContentRowProps) => {
+export const ContentRow = ({
+  title,
+  sessions,
+  onSelect,
+  index = 0,
+  embedded = false,
+  hideTitle = false,
+}: ContentRowProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   if (sessions.length === 0) return null;
@@ -25,15 +35,21 @@ export const ContentRow = ({ title, sessions, onSelect, index = 0 }: ContentRowP
 
   return (
     <motion.div
-      className="relative mb-10 md:mb-14 group/row"
+      className={`relative group/row ${embedded ? "mb-0" : "mb-10 md:mb-14"}`}
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.6, delay: index * 0.06 }}
     >
-      <h3 className="font-display text-xl md:text-2xl font-light text-foreground mb-4 px-6 md:px-12 lg:px-16">
-        {title}
-      </h3>
+      {!hideTitle && (
+        <h3
+          className={`font-display text-xl md:text-2xl font-light text-foreground mb-4 ${
+            embedded ? "" : "px-6 md:px-12 lg:px-16"
+          }`}
+        >
+          {title}
+        </h3>
+      )}
 
       <div className="relative">
         <button
@@ -55,7 +71,9 @@ export const ContentRow = ({ title, sessions, onSelect, index = 0 }: ContentRowP
 
         <div
           ref={scrollRef}
-          className="flex gap-3 md:gap-4 overflow-x-auto overflow-y-visible pb-4 px-6 md:px-12 lg:px-16 snap-x snap-mandatory scrollbar-none scroll-smooth"
+          className={`flex gap-3 md:gap-4 overflow-x-auto overflow-y-visible pb-4 snap-x snap-mandatory scrollbar-none scroll-smooth ${
+            embedded ? "pr-1" : "px-6 md:px-12 lg:px-16"
+          }`}
         >
           {sessions.map((session) => (
             <ContentCard key={session.id} session={session} onSelect={onSelect} />

@@ -9,6 +9,7 @@ import {
 import { FeaturedBanner } from "./FeaturedBanner";
 import { ContentRow } from "./ContentRow";
 import { ContentPreviewModal } from "./ContentPreviewModal";
+import { TrendingRowWithRail } from "./TrendingRowWithRail";
 
 export const NetflixBrowse = () => {
   const [selected, setSelected] = useState<ClaritySession | null>(null);
@@ -26,19 +27,25 @@ export const NetflixBrowse = () => {
           onMoreInfo={setSelected}
         />
 
+        <TrendingRowWithRail
+          title={contentSections[0].title}
+          sessions={getSessionsByCategory(contentSections[0].category)}
+          onSelect={setSelected}
+        />
+
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
         >
-          {contentSections.map((section, i) => (
+          {contentSections.slice(1).map((section, i) => (
             <ContentRow
               key={section.category}
               title={section.title}
               sessions={getSessionsByCategory(section.category)}
               onSelect={setSelected}
-              index={i}
+              index={i + 1}
             />
           ))}
         </motion.div>
