@@ -6,9 +6,14 @@ export const Creator = () => {
       <div className="container">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
           <div className="lg:col-span-2 order-2 lg:order-1">
-            <div className="relative aspect-square max-w-sm mx-auto rounded-3xl overflow-hidden bg-card-elevated border border-border">
-              <img src={creatorImg} alt="Person reflecting by water" className="w-full h-full object-cover opacity-90" />
-              <div className="absolute inset-0 bg-gradient-to-tr from-background via-transparent to-transparent" />
+            <div className="relative aspect-square max-w-sm mx-auto rounded-3xl overflow-hidden bg-card-elevated border border-border shadow-glow">
+              <img
+                src={creatorImg}
+                alt="Person reflecting by water"
+                className="w-full h-full object-cover opacity-95 mix-blend-overlay filter brightness-95 saturate-90"
+              />
+              <div className="absolute inset-0 bg-gradient-to-tr from-background/80 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-black/10" />
             </div>
           </div>
           <div className="lg:col-span-3 order-1 lg:order-2">
