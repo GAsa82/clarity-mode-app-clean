@@ -9,6 +9,7 @@ import { Pricing } from "@/components/Pricing";
 import { Creator } from "@/components/Creator";
 import { Newsletter } from "@/components/Newsletter";
 import { Footer } from "@/components/Footer";
+import { WhatsAppChat } from "@/components/WhatsAppChat";
 
 const Index = () => {
   return (
@@ -24,6 +25,7 @@ const Index = () => {
       <Creator />
       <Newsletter />
       <Footer />
+      <WhatsAppChat />
     </main>
   );
 };

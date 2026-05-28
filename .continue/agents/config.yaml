@@ -1,0 +1,12 @@
+name: Local Ollama
+version: 0.0.1
+schema: v1
+
+models:
+  - name: qwen2.5-coder
+    provider: ollama
+    model: qwen2.5-coder:7b
+    roles:
+      - chat
+      - edit
+      - preview

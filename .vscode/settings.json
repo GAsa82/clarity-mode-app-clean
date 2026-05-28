@@ -1,3 +1,6 @@
 {
     "git.ignoreLimitWarning": true
 }
+{
+  "continue.continueConfigPath": "${workspaceFolder}/.continue/config.yaml"
+}
