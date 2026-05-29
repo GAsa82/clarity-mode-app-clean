@@ -1,12 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, Clock, Tag, LogOut, Play, Flame, Sparkles, Moon, Sun } from "lucide-react";
+import { ArrowLeft, Users, Clock, Tag, LogOut, Play, Flame, Sparkles, Moon, Sun, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FocusTimer } from "@/components/FocusTimer";
 import { AmbientSoundSelector } from "@/components/AmbientSoundSelector";
 import { BreakChat } from "@/components/BreakChat";
 import { MotivationalPopup } from "@/components/MotivationalPopup";
+import { WebcamGrid } from "@/components/WebcamGrid";
+import { ActivityFeed } from "@/components/ActivityFeed";
+import { RoomEnergy } from "@/components/RoomEnergy";
+import { AchievementPanel } from "@/components/AchievementPanel";
+import { checkAndUnlockAchievements, type Achievement } from "@/lib/achievements";
 import {
   getRoomBySlug,
   joinRoom,
@@ -42,13 +47,15 @@ export const FocusRoomPage = () => {
   const [loading, setLoading] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
   const [deepFocus, setDeepFocus] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
   const [timeSpent, setTimeSpent] = useState(0);
   const [sessionStatus, setSessionStatus] = useState<string>("Ready to focus");
   const [stats, setStats] = useState<FocusStats>(getFocusStats());
   const [streak, setStreak] = useState(getFocusStreak());
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerPhase, setTimerPhase] = useState<"focus" | "break">("focus");
-  const [ambient, setAmbient] = useState("none");
+  const [newAchievement, setNewAchievement] = useState<Achievement | null>(null);
+  const [completedSessions, setCompletedSessions] = useState(0);
   const userName = getAnonymousUsername();
 
   useEffect(() => {
@@ -75,20 +82,28 @@ export const FocusRoomPage = () => {
   const handleLeave = useCallback(() => {
     if (!slug) return;
     const updated = leaveRoom(slug);
-    if (updated) { setRoom({ ...updated }); setJoined(false); setTimeSpent(0); setSessionStatus("Left the room"); setTimerRunning(false); }
+    if (updated) { setRoom({ ...updated }); setJoined(false); setTimeSpent(0); setSessionStatus("Left the room"); setTimerRunning(false); setShowCamera(false); }
   }, [slug]);
 
   const handleSessionComplete = useCallback((type: "focus" | "break") => {
     if (type === "focus") {
       setSessionStatus("Focus complete! Take a break.");
-      // Record 25 min session (approx)
       const newStats = recordFocusSession(25, room?.name || "Focus Room");
       setStats(newStats);
       setStreak(getFocusStreak());
+      const newSessions = completedSessions + 1;
+      setCompletedSessions(newSessions);
+      // Check achievements
+      const unlocked = checkAndUnlockAchievements(
+        newStats.totalSessions, newStats.totalMinutes, getFocusStreak(), 3
+      );
+      if (unlocked.length > 0) {
+        setNewAchievement(unlocked[0]);
+      }
     } else {
       setSessionStatus("Break over. Let's focus.");
     }
-  }, [room]);
+  }, [room, completedSessions]);
 
   const handlePhaseChange = useCallback((phase: "focus" | "break") => {
     setTimerPhase(phase);
@@ -145,16 +160,8 @@ export const FocusRoomPage = () => {
               key={i}
               className="absolute w-1 h-1 rounded-full bg-primary/20"
               style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
-              animate={{
-                y: [0, -30, 0],
-                opacity: [0, 0.5, 0],
-              }}
-              transition={{
-                duration: 3 + Math.random() * 4,
-                repeat: Infinity,
-                delay: Math.random() * 5,
-                ease: "easeInOut",
-              }}
+              animate={{ y: [0, -30, 0], opacity: [0, 0.5, 0] }}
+              transition={{ duration: 3 + Math.random() * 4, repeat: Infinity, delay: Math.random() * 5, ease: "easeInOut" }}
             />
           ))}
         </div>
@@ -176,12 +183,7 @@ export const FocusRoomPage = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              {/* Anonymous username */}
-              {joined && (
-                <span className="text-[9px] text-muted-foreground hidden sm:block">@{userName}</span>
-              )}
-
-              {/* Participant count */}
+              {joined && <span className="text-[9px] text-muted-foreground hidden sm:block">@{userName}</span>}
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass">
                 <Users className="w-3 h-3 text-primary" />
                 <span className="text-xs tabular-nums text-foreground">{room.active}</span>
@@ -189,16 +191,23 @@ export const FocusRoomPage = () => {
 
               {joined && (
                 <>
-                  {/* Ambient sound selector */}
+                  {/* Camera toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setShowCamera(!showCamera)}
+                    className={`flex items-center gap-1 px-2 py-1.5 rounded-xl transition-all ${
+                      showCamera ? "bg-primary/20 text-primary border border-primary/30" : "bg-card-elevated border border-border hover:border-primary/30"
+                    }`}
+                  >
+                    <Camera className="w-3 h-3" />
+                    <span className="text-[9px] hidden sm:inline">{showCamera ? "Camera" : "Camera"}</span>
+                  </button>
                   <AmbientSoundSelector />
-                  {/* Break chat */}
                   <BreakChat />
-                  {/* Deep focus toggle */}
                   <button type="button" onClick={() => setDeepFocus(!deepFocus)} className="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-card-elevated border border-border hover:border-primary/30 transition-all">
                     {deepFocus ? <Moon className="w-3 h-3 text-primary" /> : <Sun className="w-3 h-3 text-muted-foreground" />}
                     <span className="text-[9px] text-muted-foreground hidden sm:inline">{deepFocus ? "Deep" : "Ambient"}</span>
                   </button>
-                  {/* Fullscreen */}
                   <button type="button" onClick={() => setFullscreen(!fullscreen)} className="text-[10px] px-3 py-1.5 rounded-full glass text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
                     {fullscreen ? "Exit FS" : "Fullscreen"}
                   </button>
@@ -238,30 +247,39 @@ export const FocusRoomPage = () => {
             </motion.div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 items-start max-w-6xl mx-auto">
-              {/* Main timer area */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="rounded-3xl bg-card-elevated border border-border p-8 md:p-12 text-center relative overflow-hidden">
-                <motion.div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(215_90%_62%/0.08),transparent_60%)] pointer-events-none" animate={{ opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 4, repeat: Infinity }} />
-                <p className="text-[10px] uppercase tracking-[0.25em] text-primary mb-2">{sessionStatus}</p>
-                <p className="text-xs text-muted-foreground mb-8">{room.emoji} {room.name}</p>
-
-                {/* Live synced countdown */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
-                    <span className="flex items-center gap-1"><Flame className="w-3 h-3 text-orange-400" />{streak} day streak</span>
-                    <span className="flex items-center gap-1"><Users className="w-3 h-3 text-primary" />{room.active} focusers</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatTime(timeSpent)}</span>
+              {/* Main area: timer + webcam */}
+              <div className="space-y-6">
+                {/* Timer */}
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="rounded-3xl bg-card-elevated border border-border p-8 md:p-12 text-center relative overflow-hidden">
+                  <motion.div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(215_90%_62%/0.08),transparent_60%)] pointer-events-none" animate={{ opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 4, repeat: Infinity }} />
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-primary mb-2">{sessionStatus}</p>
+                  <p className="text-xs text-muted-foreground mb-8">{room.emoji} {room.name}</p>
+                  <div className="mb-4">
+                    <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1"><Flame className="w-3 h-3 text-orange-400" />{streak} day streak</span>
+                      <span className="flex items-center gap-1"><Users className="w-3 h-3 text-primary" />{room.active} focusers</span>
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatTime(timeSpent)}</span>
+                    </div>
                   </div>
-                </div>
+                  <FocusTimer modes={room.timerModes} onSessionComplete={handleSessionComplete} onPhaseChange={handlePhaseChange} />
+                </motion.div>
 
-                <FocusTimer
-                  modes={room.timerModes}
-                  onSessionComplete={handleSessionComplete}
-                  onPhaseChange={handlePhaseChange}
-                />
-              </motion.div>
+                {/* Webcam */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="rounded-2xl bg-card-elevated border border-border p-4"
+                >
+                  <WebcamGrid />
+                </motion.div>
+              </div>
 
               {/* Room info sidebar */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }} className="flex flex-col gap-4">
+                {/* Room Energy */}
+                <RoomEnergy activeUsers={room.active} completedSessions={completedSessions} />
+
                 {/* Daily focus stats */}
                 <div className="rounded-2xl bg-card-elevated border border-border p-5">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3 flex items-center gap-1">
@@ -288,6 +306,12 @@ export const FocusRoomPage = () => {
                   </div>
                 </div>
 
+                {/* Activity Feed */}
+                <ActivityFeed />
+
+                {/* Achievements */}
+                <AchievementPanel newAchievement={newAchievement} onDismiss={() => setNewAchievement(null)} />
+
                 {/* Room details */}
                 <div className="rounded-2xl bg-card-elevated border border-border p-5">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-3">Room Info</p>
@@ -309,14 +333,6 @@ export const FocusRoomPage = () => {
                     </div>
                   </div>
                 </div>
-
-                {/* Ambient indicator */}
-                {ambient !== "none" && (
-                  <div className="rounded-2xl bg-card-elevated border border-border p-5">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Ambient Sound</p>
-                    <p className="text-xs text-foreground">🎧 {ambient === "lofi" ? "Lo-Fi Beats" : ambient === "rain" ? "Rainy Day" : ambient === "wind" ? "Wind & Leaves" : ambient === "fire" ? "Crackling Fire" : ambient === "waves" ? "Ocean Waves" : ambient === "cafe" ? "Coffee Shop" : ambient === "space" ? "Deep Space" : ambient === "brown" ? "Brown Noise" : "Playing"}</p>
-                  </div>
-                )}
 
                 {/* Tags */}
                 <div className="rounded-2xl bg-card-elevated border border-border p-5">
@@ -344,7 +360,6 @@ export const FocusRoomPage = () => {
         </main>
       </div>
 
-      {/* Motivational popup */}
       <MotivationalPopup running={timerRunning} phase={timerPhase} />
     </div>
   );
