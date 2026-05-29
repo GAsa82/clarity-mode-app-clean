@@ -1,34 +1,28 @@
 import { useEffect, useState } from "react";
-import { Menu, X, LogOut } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Menu, X, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoImg from "@/assets/logo.png";
-import { SignInModal, getSignedInEmail, signOut } from "@/components/SignInModal";
+import { useAuth } from "@/contexts/AuthContext";
 
-const links = [
-  { href: "#library", label: "Library" },
-  { href: "#store", label: "Store" },
-  { href: "#dashboard", label: "Dashboard" },
-  { href: "#pricing", label: "Pricing" },
+const publicLinks = [
+  { href: "/#library", label: "Library" },
+  { href: "/ai-coach", label: "AI Coach" },
+  { href: "/insights", label: "Insights" },
+  { href: "/#store", label: "Community" },
+  { href: "/#pricing", label: "Pricing" },
 ];
 
 export const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [showSignIn, setShowSignIn] = useState(false);
-  const [signedInEmail, setSignedInEmail] = useState<string | null>(null);
+  const { user, signOut, isAdmin } = useAuth();
 
-  // Check sign-in state on mount and after changes
   useEffect(() => {
-    setSignedInEmail(getSignedInEmail());
-    const handleStorage = () => setSignedInEmail(getSignedInEmail());
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const handleSignOut = () => {
-    signOut();
-    setSignedInEmail(null);
-  };
 
   return (
     <>
@@ -43,7 +37,7 @@ export const Navbar = () => {
               scrolled ? "glass shadow-card-soft" : ""
             }`}
           >
-            <a href="#" className="flex items-center gap-2 group">
+            <Link to="/" className="flex items-center gap-2 group">
               <img
                 src={logoImg}
                 alt="Clarity Mode"
@@ -52,10 +46,10 @@ export const Navbar = () => {
               <span className="font-display text-lg font-medium tracking-tight">
                 Clarity Mode
               </span>
-            </a>
+            </Link>
 
             <div className="hidden md:flex items-center gap-8">
-              {links.map((l) => (
+              {publicLinks.map((l) => (
                 <a
                   key={l.href}
                   href={l.href}
@@ -67,30 +61,34 @@ export const Navbar = () => {
             </div>
 
             <div className="hidden md:flex items-center gap-3">
-              {signedInEmail ? (
+              {user ? (
                 <div className="flex items-center gap-2">
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+                    >
+                      <Shield className="w-3 h-3" />
+                      Admin
+                    </Link>
+                  )}
                   <span className="text-xs text-muted-foreground truncate max-w-[120px]">
-                    {signedInEmail}
+                    {user.name}
                   </span>
-                  <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                  <Button variant="ghost" size="sm" onClick={signOut}>
                     <LogOut className="w-3.5 h-3.5 mr-1" />
                     Sign out
                   </Button>
                 </div>
               ) : (
-                <Button variant="ghost" size="sm" onClick={() => setShowSignIn(true)}>
-                  Sign in
-                </Button>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">
+                    Sign in
+                  </Button>
+                </Link>
               )}
               <Button asChild variant="hero" size="sm">
-                <a
-                  href="https://gauravdata.gumroad.com/l/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => window.open("https://gauravdata.gumroad.com/l/", "_blank", "noopener,noreferrer")}
-                >
-                  Start Free
-                </a>
+                <Link to="/login">Start Free</Link>
               </Button>
             </div>
 
@@ -106,7 +104,7 @@ export const Navbar = () => {
           {open && (
             <div className="md:hidden mt-2 glass rounded-2xl p-5 animate-fade-in">
               <div className="flex flex-col gap-4">
-                {links.map((l) => (
+                {publicLinks.map((l) => (
                   <a
                     key={l.href}
                     href={l.href}
@@ -117,28 +115,33 @@ export const Navbar = () => {
                   </a>
                 ))}
                 <div className="flex flex-col gap-2 pt-2 border-t border-border">
-                  {signedInEmail ? (
+                  {user ? (
                     <>
-                      <span className="text-xs text-muted-foreground px-2">{signedInEmail}</span>
-                      <Button variant="ghost" size="sm" onClick={handleSignOut} className="justify-start">
+                      <span className="text-xs text-muted-foreground px-2">{user.name}</span>
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setOpen(false)}
+                          className="flex items-center gap-2 px-2 py-1.5 text-sm text-primary"
+                        >
+                          <Shield className="w-3.5 h-3.5" />
+                          Admin Dashboard
+                        </Link>
+                      )}
+                      <Button variant="ghost" size="sm" onClick={() => { signOut(); setOpen(false); }} className="justify-start">
                         <LogOut className="w-3.5 h-3.5 mr-2" />
                         Sign out
                       </Button>
                     </>
                   ) : (
-                    <Button variant="ghost" size="sm" onClick={() => { setShowSignIn(true); setOpen(false); }} className="justify-start">
-                      Sign in
-                    </Button>
+                    <Link to="/login" onClick={() => setOpen(false)}>
+                      <Button variant="ghost" size="sm" className="justify-start w-full">
+                        Sign in
+                      </Button>
+                    </Link>
                   )}
                   <Button asChild variant="hero" size="sm">
-                    <a
-                      href="https://gauravdata.gumroad.com/l/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => window.open("https://gauravdata.gumroad.com/l/", "_blank", "noopener,noreferrer")}
-                    >
-                      Start Free
-                    </a>
+                    <Link to="/login" onClick={() => setOpen(false)}>Start Free</Link>
                   </Button>
                 </div>
               </div>
@@ -146,8 +149,6 @@ export const Navbar = () => {
           )}
         </div>
       </header>
-
-      <SignInModal open={showSignIn} onClose={() => { setShowSignIn(false); setSignedInEmail(getSignedInEmail()); }} />
     </>
   );
 };
